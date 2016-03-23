@@ -12,7 +12,8 @@ class gameBoard extends JPanel implements MouseMotionListener {
   private int both = diameter + space;
   public Rectangle[] column; 
   private Piece[][] piece;
-   
+  private Color playerColor;   
+
 
   public static void main (String[] args) {
     gameBoard gui = new gameBoard();
@@ -23,6 +24,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
     frame = new JFrame();
     column = new Rectangle[7];
     piece = new Piece[7][6];
+    playerColor = Color.RED;
 
     for (int x = 0; x < 7; x++) {
       for(int y = 0; y < 6; y++) {
@@ -60,7 +62,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
   }
   
   private void hoverPiece(Graphics g) {
-    g.setColor(Color.RED);
+    g.setColor(playerColor);
     g.fillOval(mouse_x - diameter/2, space/2, diameter, diameter);  
   } 
 
@@ -89,10 +91,19 @@ class gameBoard extends JPanel implements MouseMotionListener {
   public void dropPiece(int col) {
     for (int row = piece[0].length-1; row >=0; row--) {
       if (piece[col][row].getColor().equals(Color.WHITE)) {
-        piece[col][row].setColor(Color.RED);
+        piece[col][row].setColor(playerColor);
+        changePlayer();
         return;
       }
     } 
+  }
+
+  public void changePlayer() {
+    if (playerColor.equals(Color.RED)) {
+      playerColor = Color.BLACK;
+    } else {
+      playerColor = Color.RED;
+    }
   }
     
 }
