@@ -27,4 +27,14 @@ public class Piece {
   public void setColor(Color c) {
     color = c;
   }
+
+  public int getValue() {
+    if (color.equals(Color.RED)) {
+      return 1;
+    } else if (color.equals(Color.BLACK)) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
 }

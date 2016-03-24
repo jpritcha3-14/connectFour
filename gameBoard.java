@@ -13,7 +13,9 @@ class gameBoard extends JPanel implements MouseMotionListener {
   public Rectangle[] column; 
   private Piece[][] piece;
   private Color playerColor;   
-
+  private boolean winState;
+  private String winner; 
+  
 
   public static void main (String[] args) {
     gameBoard gui = new gameBoard();
@@ -25,6 +27,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
     column = new Rectangle[7];
     piece = new Piece[7][6];
     playerColor = Color.RED;
+    winState = false;
 
     for (int x = 0; x < 7; x++) {
       for(int y = 0; y < 6; y++) {
@@ -82,13 +85,17 @@ class gameBoard extends JPanel implements MouseMotionListener {
         if (column[i].contains(ev.getX(), ev.getY())) {
           System.out.println(String.format("Clicked Column %d", i));
           dropPiece(i);
+          checkBoard();
           repaint();
+          if (winState) {
+            System.out.println(winner + " wins!");
+          }
         } 
       }    
     } 
   }
 
-  public void dropPiece(int col) {
+  private void dropPiece(int col) {
     for (int row = piece[0].length-1; row >=0; row--) {
       if (piece[col][row].getColor().equals(Color.WHITE)) {
         piece[col][row].setColor(playerColor);
@@ -98,12 +105,90 @@ class gameBoard extends JPanel implements MouseMotionListener {
     } 
   }
 
-  public void changePlayer() {
+  private void changePlayer() {
     if (playerColor.equals(Color.RED)) {
       playerColor = Color.BLACK;
     } else {
       playerColor = Color.RED;
     }
   }
-    
+
+  private void checkBoard() {
+
+    for (int x = 0; x < piece.length - 3; x++) {
+      for(int y = 0; y < piece[0].length - 3; y++) {
+        checkForwardDiag(x,y);
+        checkBackDiag(x,y); 
+  
+        if (x == piece.length - 3) {
+          checkAllCols(x,y);
+        } else { 
+          checkCol(x,y);
+        }
+
+        if (y == piece[0].length - 3) {
+          checkAllRows(x,y);
+        } else {
+          checkRow(x,y); 
+        }
+  
+      }
+    }
+
+  }
+
+  private void  checkWin(int result) {
+    if (result == 4) {
+      winState = true;
+      winner = "Red";
+    } 
+    if (result == -4) {
+      winState = true;
+      winner = "Black";
+    }
+  }
+  
+  private void checkCol(int x, int y) {
+    int result = 0; 
+    for (int i = 0; i < 4; i++) {
+      result += piece[x][y+i].getValue();  
+    }
+    checkWin(result);    
+  } 
+
+  private void checkRow(int x, int y) {
+    int result = 0; 
+    for (int i = 0; i < 4; i++) {
+      result += piece[x+i][y].getValue();  
+    }
+    checkWin(result);    
+  }   
+
+  private void checkAllCols(int x, int y) {
+    for (int i = 0; i < 4; i++) {
+      checkCol(x, y+i);
+    }
+  }
+
+  private void checkAllRows(int x, int y) {
+    for (int i = 0; i < 4; i++) {
+      checkRow(x+i, y);
+    }
+  }
+
+  private void checkForwardDiag(int x, int y) {
+    int result = 0; 
+    for (int i = 0; i < 4; i++) {
+      result += piece[x+i][y+3-i].getValue();  
+    }
+    checkWin(result);    
+  }
+
+  private void checkBackDiag(int x, int y) {
+    int result = 0; 
+    for (int i = 0; i < 4; i++) {
+      result += piece[x+i][y+i].getValue();  
+    }
+    checkWin(result);    
+  }
 }
