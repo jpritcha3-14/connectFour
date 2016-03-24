@@ -15,7 +15,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
   private Color playerColor;   
   private boolean winState;
   private String winner; 
-  
+  private Font font;  
 
   public static void main (String[] args) {
     gameBoard gui = new gameBoard();
@@ -28,6 +28,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
     piece = new Piece[7][6];
     playerColor = Color.RED;
     winState = false;
+    font = new Font("SansSerif", Font.BOLD, 24);
 
     for (int x = 0; x < 7; x++) {
       for(int y = 0; y < 6; y++) {
@@ -51,17 +52,28 @@ class gameBoard extends JPanel implements MouseMotionListener {
 
   @Override
   public void paintComponent(Graphics g) {
-    g.setColor(Color.WHITE);
-    g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
-    g.setColor(Color.BLUE);
-    g.fillRect(diameter + space/2, diameter + space/2, 7*both, 6*both);
+    if (!winState) {
+      g.setColor(Color.WHITE);
+      g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
+      g.setColor(Color.BLUE);
+      g.fillRect(diameter + space/2, diameter + space/2, 7*both, 6*both);
+      hoverPiece(g);
+    } else {
+      g.setFont(font);
+      changePlayer();
+      g.setColor(Color.WHITE);
+      g.fillRect(0, 0, frame.getWidth(), diameter + space/2);
+      g.setColor(playerColor);
+      g.drawString(winner + " Wins!", frame.getWidth()/2 - both , both/2);
+    }       
+
     for (int x = 0; x < 7; x++) {
       for(int y = 0; y < 6; y++) {
         g.setColor(piece[x][y].getColor());
         g.fillOval(piece[x][y].getX(), piece[x][y].getY(), diameter, diameter);
       }
     }
-    hoverPiece(g);
+
   }
   
   private void hoverPiece(Graphics g) {
@@ -74,24 +86,30 @@ class gameBoard extends JPanel implements MouseMotionListener {
 
   @Override
   public void mouseMoved(MouseEvent e) {
-    mouse_x = e.getX(); 
-    repaint();        
+    if(!winState) {
+      mouse_x = e.getX(); 
+      repaint();        
+    }
   }  
   
   public class ClickHandle extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent ev) {
-      for(int i = 0; i < column.length; i++) {
-        if (column[i].contains(ev.getX(), ev.getY())) {
-          System.out.println(String.format("Clicked Column %d", i));
-          dropPiece(i);
-          checkBoard();
-          repaint();
-          if (winState) {
-            System.out.println(winner + " wins!");
-          }
-        } 
-      }    
+      if (!winState) { 
+        for(int i = 0; i < column.length; i++) {
+          if (column[i].contains(ev.getX(), ev.getY())) {
+            //System.out.println(String.format("Clicked Column %d", i));
+            dropPiece(i);
+            checkBoard();
+            repaint();
+            if (winState) {
+              System.out.println(winner + " wins!");
+            }
+          } 
+        }    
+      } else {
+        go();
+      } 
     } 
   }
 
@@ -120,13 +138,13 @@ class gameBoard extends JPanel implements MouseMotionListener {
         checkForwardDiag(x,y);
         checkBackDiag(x,y); 
   
-        if (x == piece.length - 3) {
+        if (x == piece.length - 4) {
           checkAllCols(x,y);
         } else { 
           checkCol(x,y);
         }
 
-        if (y == piece[0].length - 3) {
+        if (y == piece[0].length - 4) {
           checkAllRows(x,y);
         } else {
           checkRow(x,y); 
@@ -166,13 +184,13 @@ class gameBoard extends JPanel implements MouseMotionListener {
 
   private void checkAllCols(int x, int y) {
     for (int i = 0; i < 4; i++) {
-      checkCol(x, y+i);
+      checkCol(x+i, y);
     }
   }
 
   private void checkAllRows(int x, int y) {
     for (int i = 0; i < 4; i++) {
-      checkRow(x+i, y);
+      checkRow(x, y+i);
     }
   }
 
