@@ -13,33 +13,27 @@ class gameBoard extends JPanel implements MouseMotionListener {
   public Rectangle[] column; 
   private Piece[][] piece;
   private Color playerColor;   
-  private boolean winState;
+  private boolean win;
+  private boolean tie;
   private String winner; 
   private Font font;  
 
   public static void main (String[] args) {
     gameBoard gui = new gameBoard();
-    gui.go();  
+    gui.start();  
   }
 
-  public void go() {
-    frame = new JFrame();
+  public void start() {
+
+    frame = new JFrame();    
+    font = new Font("SansSerif", Font.BOLD, 24);
     column = new Rectangle[7];
     piece = new Piece[7][6];
-    playerColor = Color.RED;
-    winState = false;
-    font = new Font("SansSerif", Font.BOLD, 24);
 
-    for (int x = 0; x < 7; x++) {
-      for(int y = 0; y < 6; y++) {
-        piece[x][y] = new Piece((x+1)*both, (y+1)*both);  
-      }
-    }
- 
     for (int i = 0; i < column.length; i++) {
       column[i] = new Rectangle(diameter + space/2 + i*(both), diameter + space/2, both-1, 6*both);
     }
-    
+
     this.setFocusable(true);
     frame.getContentPane().add(this);
     frame.addMouseMotionListener(this);
@@ -48,11 +42,28 @@ class gameBoard extends JPanel implements MouseMotionListener {
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);     
     frame.setSize(9*both, 8*both);
     frame.setVisible(true);
+
+    restart();
+  }     
+
+  public void restart() {
+
+    playerColor = Color.RED;
+    win = false;
+    tie = false;
+      
+    for (int x = 0; x < 7; x++) {
+      for(int y = 0; y < 6; y++) {
+        piece[x][y] = new Piece((x+1)*both, (y+1)*both);  
+      }
+    }
+    
+    repaint();
   }
 
   @Override
   public void paintComponent(Graphics g) {
-    if (!winState) {
+    if (!(win || tie)) {
       g.setColor(Color.WHITE);
       g.fillRect(0, 0, frame.getWidth(), frame.getHeight());
       g.setColor(Color.BLUE);
@@ -63,8 +74,14 @@ class gameBoard extends JPanel implements MouseMotionListener {
       changePlayer();
       g.setColor(Color.WHITE);
       g.fillRect(0, 0, frame.getWidth(), diameter + space/2);
-      g.setColor(playerColor);
-      g.drawString(winner + " Wins!", frame.getWidth()/2 - both , both/2);
+      if (win) {
+        g.setColor(playerColor);
+        g.drawString(winner + " Wins!", frame.getWidth()/2 - both , both/2);
+      }
+      if (tie && !win) {
+        g.setColor(Color.BLACK);
+        g.drawString("Tie", frame.getWidth()/2 - both/2, both/2);
+      }
     }       
 
     for (int x = 0; x < 7; x++) {
@@ -86,7 +103,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
 
   @Override
   public void mouseMoved(MouseEvent e) {
-    if(!winState) {
+    if(!(win || tie)) {
       mouse_x = e.getX(); 
       repaint();        
     }
@@ -95,20 +112,17 @@ class gameBoard extends JPanel implements MouseMotionListener {
   public class ClickHandle extends MouseAdapter {
     @Override
     public void mouseClicked(MouseEvent ev) {
-      if (!winState) { 
+      if (!(win || tie)) { 
         for(int i = 0; i < column.length; i++) {
           if (column[i].contains(ev.getX(), ev.getY())) {
             //System.out.println(String.format("Clicked Column %d", i));
             dropPiece(i);
             checkBoard();
             repaint();
-            if (winState) {
-              System.out.println(winner + " wins!");
-            }
           } 
         }    
       } else {
-        go();
+        restart();
       } 
     } 
   }
@@ -118,6 +132,7 @@ class gameBoard extends JPanel implements MouseMotionListener {
       if (piece[col][row].getColor().equals(Color.WHITE)) {
         piece[col][row].setColor(playerColor);
         changePlayer();
+        tie = checkTie();
         return;
       }
     } 
@@ -130,7 +145,19 @@ class gameBoard extends JPanel implements MouseMotionListener {
       playerColor = Color.RED;
     }
   }
-
+  
+  private boolean checkTie() {
+    for (int x = 0; x < piece.length; x++) {
+      for (int y = 0; y < piece[0].length; y++) {
+        if (piece[x][y].getValue() == 0) {
+          return false;
+        }
+      } 
+    }
+    return true;
+  }
+    
+  
   private void checkBoard() {
 
     for (int x = 0; x < piece.length - 3; x++) {
@@ -157,11 +184,11 @@ class gameBoard extends JPanel implements MouseMotionListener {
 
   private void  checkWin(int result) {
     if (result == 4) {
-      winState = true;
+      win = true;
       winner = "Red";
     } 
     if (result == -4) {
-      winState = true;
+      win = true;
       winner = "Black";
     }
   }
